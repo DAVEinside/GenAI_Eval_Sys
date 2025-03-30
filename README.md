@@ -206,8 +206,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📧 Contact
 
-Project Maintainer - yourname@example.com
+Project Maintainer - nimitdave3001@gmail.com
 
 ---
-
-*Note: Replace placeholder image paths with actual screenshots once the application is running.*
