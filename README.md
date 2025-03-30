@@ -1,6 +1,7 @@
 # Generative AI Content Evaluation System
 
-![Project Banner](image.png)
+![Project Banner]![image](https://github.com/user-attachments/assets/7343ddff-cdcf-47ca-b603-fb8a13c77314)
+)
 
 ## Overview
 
