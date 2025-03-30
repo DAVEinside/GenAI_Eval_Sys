@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Evaluate Content - {{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content-box {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .rating-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .rating-stars {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    
+    .rating-stars input {
+        display: none;
+    }
+    
+    .rating-stars label {
+        cursor: pointer;
+        font-size: 1.5rem;
+        padding: 0 0.2rem;
+        color: #ddd;
+    }
+    
+    .rating-stars label:hover,
+    .rating-stars label:hover ~ label,
+    .rating-stars input:checked ~ label {
+        color: #ffc107;
+    }
+    
+    .criterion-name {
+        font-weight: 600;
+        min-width: 150px;
+    }
+    
+    .criterion-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.3rem;
+    }
+    
+    .quality-check {
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="mb-4">Evaluate Content</h2>
+        
+        <div class="content-box">
+            <h3>{{ content.title }}</h3>
+            <div class="text-muted mb-3">
+                <span class="badge bg-secondary">{{ content.domain }}</span>
+                <span class="badge {% if content.source_type == 'ai' %}bg-primary{% else %}bg-success{% endif %}">
+                    {{ "AI Generated" if content.source_type == 'ai' else "Human Created" }}
+                </span>
+                {% if content.model_name %}
+                    <span class="badge bg-info">{{ content.model_name }}</span>
+                {% endif %}
+            </div>
+            <div class="content-text">
+                {{ content.text | safe }}
+            </div>
+        </div>
+        
+        <form method="POST" id="evaluationForm">
+            {{ form.csrf_token }}
+            <input type="hidden" name="evaluation_id" value="{{ evaluation_id }}">
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Evaluation Criteria</h4>
+                </div>
+                <div class="card-body">
+                    {% for criterion in criteria %}
+                    <div class="mb-4">
+                        <div class="criterion-name">{{ criterion.name | title }}</div>
+                        <div class="criterion-description">{{ criterion.description }}</div>
+                        <div class="rating-container mt-2">
+                            <div class="rating-label me-3">{{ criterion.scale_min }}</div>
+                            <div class="rating-stars">
+                                {% for i in range(criterion.scale_max, criterion.scale_min - 1, -1) %}
+                                <input type="radio" id="criterion_{{ criterion.id }}_{{ i }}" name="criterion_{{ criterion.id }}" value="{{ i }}" required>
+                                <label for="criterion_{{ criterion.id }}_{{ i }}">★</label>
+                                {% endfor %}
+                            </div>
+                            <div class="rating-label ms-3">{{ criterion.scale_max }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="mb-4">
+                        <label for="overall_rating" class="form-label">Overall Rating</label>
+                        <div class="rating-container">
+                            <div class="rating-label me-3">1</div>
+                            <div class="rating-stars">
+                                {% for i in range(5, 0, -1) %}
+                                <input type="radio" id="overall_{{ i }}" name="overall_rating" value="{{ i }}" required>
+                                <label for="overall_{{ i }}">★</label>
+                                {% endfor %}
+                            </div>
+                            <div class="rating-label ms-3">5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Comments</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="4">{{ form.comments.data or '' }}</textarea>
+                        <div class="form-text">Optional: Provide any additional comments about the content.</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if quality_checks %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Quality Check Questions</h4>
+                </div>
+                <div class="card-body">
+                    {% for check in quality_checks %}
+                    <div class="quality-check">
+                        <label for="quality_check_{{ check.id }}" class="form-label">{{ check.question }}</label>
+                        <input type="text" class="form-control" id="quality_check_{{ check.id }}" name="quality_check_{{ check.id }}" required>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('web_bp.content_detail', content_id=content.id) }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Basic form validation
+    document.getElementById('evaluationForm').addEventListener('submit', function(event) {
+        const allCriteria = document.querySelectorAll('[name^="criterion_"]');
+        const criteriaGroups = {};
+        
+        // Group criteria by name
+        allCriteria.forEach(input => {
+            const name = input.name;
+            if (!criteriaGroups[name]) {
+                criteriaGroups[name] = [];
+            }
+            criteriaGroups[name].push(input);
+        });
+        
+        // Check if each criterion group has a selection
+        let allValid = true;
+        for (const name in criteriaGroups) {
+            const group = criteriaGroups[name];
+            const selected = group.some(input => input.checked);
+            
+            if (!selected) {
+                allValid = false;
+                // Find criterion name for error message
+                const criterionId = name.split('_')[1];
+                const criterionElem = document.querySelector(`.criterion-name[data-id="${criterionId}"]`);
+                const criterionName = criterionElem ? criterionElem.textContent : name;
+                
+                alert(`Please rate the ${criterionName} criterion`);
+                break;
+            }
+        }
+        
+        // Check overall rating
+        const overallRated = document.querySelector('[name="overall_rating"]:checked');
+        if (!overallRated) {
+            allValid = false;
+            alert('Please provide an overall rating');
+        }
+        
+        if (!allValid) {
+            event.preventDefault();
+        }
+    });
+    
+    // Timer to track evaluation time
+    const startTime = new Date().getTime();
+    
+    window.addEventListener('beforeunload', function(e) {
+        const currentTime = new Date().getTime();
+        const timeSpent = (currentTime - startTime) / 1000; // in seconds
+        
+        // If form is not submitted and user spent less than 30 seconds
+        if (timeSpent < 30) {
+            // Show warning message
+            e.preventDefault();
+            e.returnValue = 'Are you sure you want to leave? Your evaluation progress will be lost.';
+            return e.returnValue;
+        }
+    });
+</script>
+{% endblock %}

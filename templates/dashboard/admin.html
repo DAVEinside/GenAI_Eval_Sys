@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="mb-4">Admin Dashboard</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="adminActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Admin Actions
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="adminActionsDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('dashboard_bp.export_evaluations') }}">Export Evaluations</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard_bp.quality_issues') }}">Quality Control Issues</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard_bp.improvement_suggestions') }}">Improvement Suggestions</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('dashboard_bp.human_ai_gap') }}">Human-AI Gap Analysis</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.content_count }}</div>
+            <div class="stats-label">Total Content</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.evaluation_count }}</div>
+            <div class="stats-label">Total Evaluations</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.user_count }}</div>
+            <div class="stats-label">Users</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.completion_rate }}%</div>
+            <div class="stats-label">Completion Rate</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Content Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="content-distribution-chart" 
+                            data-labels="{{ stats.content_by_domain.keys()|list|tojson }}" 
+                            data-values="{{ stats.content_by_domain.values()|list|tojson }}"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Content Source Types</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="source-type-chart" 
+                            data-labels="{{ ['AI Generated', 'Human Created']|tojson }}" 
+                            data-values="{{ [stats.ai_content, stats.human_content]|tojson }}"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Quality Control Issues</h5>
+                    <span class="badge bg-danger">{{ quality_issues_count }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if quality_issues %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Evaluation ID</th>
+                                    <th>Evaluator</th>
+                                    <th>Issues</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in quality_issues %}
+                                    <tr>
+                                        <td>{{ issue.evaluation_id }}</td>
+                                        <td>{{ issue.evaluator_id }}</td>
+                                        <td>
+                                            {% for flag in issue.flags %}
+                                                <span class="badge bg-danger">{{ flag }}</span>
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ issue.completion_time|datetimeformat }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No quality issues detected</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('dashboard_bp.quality_issues') }}" class="btn btn-sm btn-outline-dark">View All Issues</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Recent Analytics Reports</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_reports %}
+                    <div class="list-group">
+                        {% for report in recent_reports %}
+                            <a href="{{ url_for('dashboard_bp.view_report', report_id=report.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ report.title }}</h6>
+                                    <small>{{ report.created_at|datetimeformat }}</small>
+                                </div>
+                                <p class="mb-1">{{ report.description }}</p>
+                                <small class="text-muted">{{ report.report_type|replace('_', ' ')|title }}</small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No reports generated yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('dashboard_bp.reports') }}" class="btn btn-sm btn-outline-primary">View All Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Model Improvement Suggestions</h5>
+            </div>
+            <div class="card-body">
+                {% if suggestions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Domain</th>
+                                    <th>Criterion</th>
+                                    <th>Current Score</th>
+                                    <th>Target Score</th>
+                                    <th>Priority</th>
+                                    <th>Suggestion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for suggestion in suggestions %}
+                                    <tr>
+                                        <td>{{ suggestion.model_name }}</td>
+                                        <td>{{ suggestion.domain|default('General', true)|replace('_', ' ')|title }}</td>
+                                        <td>{{ suggestion.criterion|title }}</td>
+                                        <td>{{ suggestion.current_score|round(2) }}</td>
+                                        <td>{{ suggestion.target_score|round(2) }}</td>
+                                        <td>
+                                            <span class="badge {% if suggestion.priority == 'high' %}bg-danger{% elif suggestion.priority == 'medium' %}bg-warning{% else %}bg-info{% endif %}">
+                                                {{ suggestion.priority|title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ suggestion.suggestion }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No improvement suggestions available</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('dashboard_bp.improvement_suggestions') }}" class="btn btn-sm btn-outline-success">View All Suggestions</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Content distribution chart
+        const contentDistributionCtx = document.getElementById('content-distribution-chart');
+        if (contentDistributionCtx) {
+            const labels = JSON.parse(contentDistributionCtx.dataset.labels || '[]');
+            const values = JSON.parse(contentDistributionCtx.dataset.values || '[]');
+            
+            new Chart(contentDistributionCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(label => label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+                    datasets: [{
+                        label: 'Content Count',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Source type chart
+        const sourceTypeCtx = document.getElementById('source-type-chart');
+        if (sourceTypeCtx) {
+            const labels = JSON.parse(sourceTypeCtx.dataset.labels || '[]');
+            const values = JSON.parse(sourceTypeCtx.dataset.values || '[]');
+            
+            new Chart(sourceTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(75, 192, 192, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

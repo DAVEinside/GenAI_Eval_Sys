@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}{% if title %}{{ title }}{% else %}Dashboard{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'overview' %}active{% endif %}" href="{{ url_for('dashboard_bp.index') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'reports' %}active{% endif %}" href="{{ url_for('dashboard_bp.reports') }}">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'model_comparison' %}active{% endif %}" href="{{ url_for('dashboard_bp.model_comparison') }}">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Model Comparison
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'improvement_analysis' %}active{% endif %}" href="{{ url_for('dashboard_bp.improvement_analysis') }}">
+                            <i class="fas fa-arrow-up me-2"></i>
+                            Improvement Analysis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'human_ai_gap' %}active{% endif %}" href="{{ url_for('dashboard_bp.human_ai_gap') }}">
+                            <i class="fas fa-robot me-2"></i>
+                            Human-AI Gap
+                        </a>
+                    </li>
+                </ul>
+
+                {% if is_admin %}
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Admin</span>
+                </h6>
+                <ul class="nav flex-column mb-2">
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'admin' %}active{% endif %}" href="{{ url_for('dashboard_bp.admin') }}">
+                            <i class="fas fa-users-cog me-2"></i>
+                            Admin Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'quality_issues' %}active{% endif %}" href="{{ url_for('dashboard_bp.quality_issues') }}">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Quality Issues
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'improvement_suggestions' %}active{% endif %}" href="{{ url_for('dashboard_bp.improvement_suggestions') }}">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Improvement Suggestions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if active_page == 'export_evaluations' %}active{% endif %}" href="{{ url_for('dashboard_bp.export_evaluations') }}">
+                            <i class="fas fa-file-export me-2"></i>
+                            Export Evaluations
+                        </a>
+                    </li>
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{% block dashboard_title %}Dashboard{% endblock %}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    {% block dashboard_actions %}{% endblock %}
+                </div>
+            </div>
+
+            {% block dashboard_content %}
+            <div class="alert alert-info">
+                Select an option from the dashboard menu to view specific analytics and reports.
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard sidebar styling */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 56px 0 0;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    }
+
+    @media (max-width: 767.98px) {
+        .sidebar {
+            position: static;
+            padding-top: 20px;
+        }
+    }
+
+    .sidebar-sticky {
+        position: relative;
+        top: 0;
+        height: calc(100vh - 56px);
+        padding-top: .5rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .sidebar .nav-link {
+        font-weight: 500;
+        color: #333;
+        padding: .5rem 1rem;
+        border-radius: 0.25rem;
+        margin: 0.2rem 0.5rem;
+    }
+
+    .sidebar .nav-link:hover {
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .sidebar .nav-link.active {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .sidebar-heading {
+        font-size: .75rem;
+        text-transform: uppercase;
+    }
+
+    /* Main content padding adjustments */
+    @media (min-width: 768px) {
+        .col-md-9.ms-sm-auto {
+            padding-top: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle sidebar visibility on mobile
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                document.querySelector('.sidebar').classList.toggle('show');
+            });
+        }
+        
+        // Highlight current nav item
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+    });
+</script>
+{% endblock %}

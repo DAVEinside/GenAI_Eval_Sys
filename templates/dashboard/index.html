@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="mb-4">Evaluation Dashboard</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('dashboard_bp.reports') }}" class="btn btn-outline-primary">
+                <i class="fas fa-file-alt me-1"></i> Reports
+            </a>
+            <a href="{{ url_for('dashboard_bp.model_comparison') }}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-bar me-1"></i> Model Comparison
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.total_evaluations }}</div>
+            <div class="stats-label">Total Evaluations</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.completed_evaluations }}</div>
+            <div class="stats-label">Completed</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ stats.completion_rate }}%</div>
+            <div class="stats-label">Completion Rate</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="stats-number">{{ pending|length }}</div>
+            <div class="stats-label">Pending Evaluations</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Evaluations by Domain</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="domain-distribution-chart" 
+                            data-labels="{{ stats.domain_distribution.keys()|list|tojson }}" 
+                            data-values="{{ stats.domain_distribution.values()|list|tojson }}"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Content Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="content-type-chart" 
+                            data-labels="{{ ['AI Generated', 'Human Created']|tojson }}" 
+                            data-values="{{ [stats.content_type_distribution.ai, stats.content_type_distribution.human]|tojson }}"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Pending Evaluations</h5>
+            </div>
+            <div class="card-body">
+                {% if pending %}
+                    <ul class="list-group list-group-flush">
+                        {% for eval in pending %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ eval.title }}</strong>
+                                    <div class="text-muted small">{{ eval.domain }}</div>
+                                </div>
+                                <a href="{{ url_for('web_bp.evaluate_content', content_id=eval.content_id) }}" class="btn btn-sm btn-primary">
+                                    Evaluate
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center py-3">No pending evaluations</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('web_bp.content_list') }}" class="btn btn-outline-primary btn-sm">View All Content</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Reports</h5>
+            </div>
+            <div class="card-body">
+                {% if reports %}
+                    <ul class="list-group list-group-flush">
+                        {% for report in reports %}
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ report.title }}</h6>
+                                    <small>{{ report.created_at|datetimeformat }}</small>
+                                </div>
+                                <p class="mb-1 text-muted small">{{ report.report_type|replace('_', ' ')|title }}</p>
+                                <small>
+                                    <a href="{{ url_for('dashboard_bp.view_report', report_id=report.id) }}">View Report</a>
+                                </small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-center py-3">No reports generated yet</p>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('dashboard_bp.reports') }}" class="btn btn-outline-primary btn-sm">View All Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Domain distribution chart
+        const domainCtx = document.getElementById('domain-distribution-chart');
+        if (domainCtx) {
+            const labels = JSON.parse(domainCtx.dataset.labels || '[]');
+            const values = JSON.parse(domainCtx.dataset.values || '[]');
+            
+            new Chart(domainCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(label => label.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())),
+                    datasets: [{
+                        label: 'Evaluations',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Evaluations by Content Domain'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Content type chart
+        const contentTypeCtx = document.getElementById('content-type-chart');
+        if (contentTypeCtx) {
+            const labels = JSON.parse(contentTypeCtx.dataset.labels || '[]');
+            const values = JSON.parse(contentTypeCtx.dataset.values || '[]');
+            
+            new Chart(contentTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(75, 192, 192, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Content Type Distribution'
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

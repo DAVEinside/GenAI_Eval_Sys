@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Home - GenAI Evaluation System{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-lg-6">
+        <h1 class="display-5 fw-bold mb-4">Generative AI Content Evaluation System</h1>
+        <p class="lead mb-4">
+            A systematic approach to evaluate AI-generated content against human expert benchmarks across multiple content domains.
+        </p>
+        <p class="mb-4">
+            Our platform enables systematic collection of expert feedback on model outputs, implements robust quality control processes, and provides powerful analytics to identify key areas for model improvement.
+        </p>
+        {% if current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a href="{{ url_for('web_bp.content_list') }}" class="btn btn-primary btn-lg px-4 me-md-2">View Content</a>
+                <a href="{{ url_for('web_bp.evaluations') }}" class="btn btn-outline-secondary btn-lg px-4">My Evaluations</a>
+            </div>
+        {% else %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                <a href="{{ url_for('web_bp.login') }}" class="btn btn-primary btn-lg px-4 me-md-2">Login</a>
+                <a href="{{ url_for('web_bp.register') }}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-lg-6 d-none d-lg-block">
+        <img src="{{ url_for('static', filename='images/ai-evaluation.svg') }}" class="img-fluid" alt="AI Evaluation">
+    </div>
+</div>
+
+<div class="row mt-5 pt-5">
+    <div class="col-12 text-center">
+        <h2 class="mb-4">Content Domains</h2>
+        <p class="lead mb-5">We evaluate AI-generated content across multiple domains</p>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+    {% for domain in content_domains %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ domain|replace('_', ' ')|title }}</h5>
+                    <p class="card-text">
+                        {% if domain == 'creative_writing' %}
+                            Evaluating narrative structure, character development, creativity, and overall engagement in stories, poems, and scripts.
+                        {% elif domain == 'technical_documentation' %}
+                            Assessing accuracy, clarity, organization, and usefulness of technical guides, API documentation, and tutorials.
+                        {% elif domain == 'marketing_copy' %}
+                            Analyzing persuasiveness, brand alignment, call-to-action effectiveness, and engagement in marketing materials.
+                        {% elif domain == 'news_articles' %}
+                            Evaluating objectivity, fact accuracy, source attribution, and narrative structure in news content.
+                        {% elif domain == 'academic_papers' %}
+                            Assessing methodological rigor, citation quality, argument structure, and contribution to knowledge.
+                        {% elif domain == 'social_media_posts' %}
+                            Analyzing engagement potential, tone appropriateness, brevity, and message clarity in social media content.
+                        {% else %}
+                            Comprehensive evaluation using domain-specific criteria and expert benchmark comparisons.
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-footer">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('web_bp.content_list', domain=domain) }}" class="btn btn-sm btn-outline-primary">View {{ domain|replace('_', ' ')|title }} Content</a>
+                    {% else %}
+                        <small class="text-muted">Login to view content in this domain</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="text-center mb-4">
+            <div class="display-6 fw-bold text-primary">
+                <i class="fas fa-users mb-3"></i>
+            </div>
+            <h3>Expert Feedback</h3>
+            <p>Collect detailed evaluations from domain experts to establish quality benchmarks</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="text-center mb-4">
+            <div class="display-6 fw-bold text-primary">
+                <i class="fas fa-chart-line mb-3"></i>
+            </div>
+            <h3>Comparative Analysis</h3>
+            <p>Compare AI-generated content against human benchmarks to identify improvement areas</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="text-center mb-4">
+            <div class="display-6 fw-bold text-primary">
+                <i class="fas fa-check-circle mb-3"></i>
+            </div>
+            <h3>Quality Control</h3>
+            <p>Robust quality assurance measures to ensure consistent and reliable evaluations</p>
+        </div>
+    </div>
+</div>
+
+{% if current_user.is_authenticated and current_user.role == 'admin' %}
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">System Statistics</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="content-count">-</div>
+                            <div class="stats-label">Total Content</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="evaluation-count">-</div>
+                            <div class="stats-label">Evaluations</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="completion-rate">-</div>
+                            <div class="stats-label">Completion Rate</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-number" id="ai-content-count">-</div>
+                            <div class="stats-label">AI-Generated Content</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-end">
+                <a href="{{ url_for('dashboard_bp.admin') }}" class="btn btn-sm btn-primary">View Full Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch statistics
+        fetch('/api/statistics')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('content-count').textContent = data.total_content;
+                document.getElementById('evaluation-count').textContent = data.total_evaluations;
+                document.getElementById('completion-rate').textContent = data.completion_rate + '%';
+                document.getElementById('ai-content-count').textContent = data.content_by_source.ai;
+            })
+            .catch(error => console.error('Error fetching statistics:', error));
+    });
+</script>
+{% endif %}
+{% endblock %}

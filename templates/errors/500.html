@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - 500 Error{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center text-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="error-page my-5">
+            <h1 class="display-1 text-danger">500</h1>
+            <h2 class="mb-4">Internal Server Error</h2>
+            <p class="lead mb-4">Something went wrong on our server. We are aware of the issue and are working to fix it.</p>
+            <div class="mb-5">
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i> Return to Home
+                </a>
+            </div>
+            <div class="text-muted">
+                <p>If the problem persists, please contact the system administrator.</p>
+                <p><small>Error Reference: {{ request.environ.get('HTTP_X_REQUEST_ID', '') }}</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
