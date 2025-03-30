@@ -23,7 +23,7 @@ The Generative AI Content Evaluation System is a comprehensive platform designed
 ## 🖼️ Screenshots
 
 ### Home Page
-![Home Page]([docs/images/home_page.png](https://github.com/DAVEinside/GenAI_Eval_Sys.git))
+https://github.com/DAVEinside/GenAI_Eval_Sys.git
 *The landing page provides an overview of the system, showcasing the different content domains evaluated and key statistics.*
 
 ### Content Evaluation Interface
