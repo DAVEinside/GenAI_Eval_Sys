@@ -28,23 +28,28 @@ https://github.com/DAVEinside/GenAI_Eval_Sys.git
 *The landing page provides an overview of the system, showcasing the different content domains evaluated and key statistics.*
 
 ### Content Evaluation Interface
-![Evaluation Interface](docs/images/evaluation_interface.png)
+(![image](https://github.com/user-attachments/assets/88b55980-f4c6-4f82-bde2-ae376dbce0ef)
+)
 *The evaluation interface allows experts to rate content across multiple criteria using an intuitive star-rating system with detailed rubrics.*
 
 ### Dashboard Overview
-![Dashboard Overview](docs/images/dashboard_overview.png)
+(![image](https://github.com/user-attachments/assets/047a5903-c435-448b-a48c-40346d2d712f)
+)
 *The main dashboard displays evaluation statistics, completion rates, and domain distribution in an easy-to-understand visual format.*
 
 ### Model Comparison
-![Model Comparison](docs/images/model_comparison.png)
+(![image](https://github.com/user-attachments/assets/67184693-8efa-4183-a215-4a3651f9fad0)
+)
 *The model comparison tool allows administrators to analyze performance differences between AI models across various criteria and domains.*
 
 ### Expert Portal
-![Expert Portal](docs/images/expert_portal.png)
+(![image](https://github.com/user-attachments/assets/6320c9d7-92de-40a2-9ce6-d05045bb6e71)
+)
 *Domain experts have access to a specialized portal that organizes evaluations by their areas of expertise and provides quality metrics.*
 
 ### Admin Dashboard
-![Admin Dashboard](docs/images/admin_dashboard.png)
+(![image](https://github.com/user-attachments/assets/f6e07799-39e9-4d1b-914b-2c9a0880d075)
+)
 *Administrators can access system-wide statistics, quality control issues, and improvement suggestions from this comprehensive view.*
 
 ## 🚀 Technology Stack
